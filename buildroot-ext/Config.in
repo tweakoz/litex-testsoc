@@ -1,0 +1,3 @@
+menu "TestSoc Options"
+  source "$BR2_EXTERNAL_TESTSOC_PATH/package/microork/Config.in"
+endmenu

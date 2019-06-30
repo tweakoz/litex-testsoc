@@ -1,0 +1,6 @@
+[submodule "ork.build"]
+	path = ork.build
+	url = https://github.com/tweakoz/ork.build
+[submodule "litex-chainloader"]
+	path = litex-chainloader
+	url = https://github.com/tweakoz/litex-chainloader

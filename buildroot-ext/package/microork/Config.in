@@ -1,0 +1,19 @@
+config BR2_PACKAGE_MICROORK
+	bool "microork"
+	depends on BR2_INSTALL_LIBSTDCPP
+	depends on BR2_PACKAGE_LIBCURL
+	depends on BR2_PACKAGE_RAPIDJSON
+	depends on BR2_TOOLCHAIN_HAS_ATOMIC
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	depends on !BR2_STATIC_LIBS
+	help
+	  microork yo
+
+	  https://github.com/tweakoz/micro_ork
+
+comment "microork needs a toolchain w/ C++, shared libraries, libatomic, pthreads, rapidjson, and libcurl"
+
+config BR2_PACKAGE_MICROORK_WHATUPYO
+	string "whatupyo"
+	help
+	  what up yo
