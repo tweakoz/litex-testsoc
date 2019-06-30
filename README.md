@@ -60,7 +60,7 @@ Assuming all went well:
     ```launch.soc.py --tty /dev/ttyUSBx```
 
   * Connect to it:
-  
+
      ```connect.soc.py```
 
 
@@ -71,10 +71,11 @@ Assuming all went well:
   * ***${BUILDROOT_DIR}*** : where Linux Buildroot Lives
   * ***${SOC_BUILD_DIR}*** : where the Litex build products go - gateware and software
   * ***${SOC_DIR}*** : SOC source directory
-  * ***${SOCIPADDR}*** : the SOC's IP address 
+  * ***${SOCIPADDR}*** : the SOC's IP address
   * ***${SOCPASSWORD}*** : the SOC's root password
   * ***${DEVTTY}*** : the SOC's programming port tty device name
   * ***${DEVHOSTIP}*** : the development host's IP address (for the TFTP server)
   * ***${NFSHOSTIP}*** : an optional NFS server IP address
   * ***${VIRTUAL_ENV}*** : python virtual environment
-  
+
+  * You can view the environment's current SOC configuration variables using the command ```socvars.py```

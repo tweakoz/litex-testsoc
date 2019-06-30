@@ -205,12 +205,55 @@ int main( int argc, const char** argv ){
 
   });
   ///////////////////////////////////////////////////
+  auto thr_fifo_send = new std::thread([&](){
+
+      auto outfifo_data = registers+roffset(CSR_FIFOTEST_OUT_DATAREG_ADDR);
+      auto outfifo_ready = registers+roffset(CSR_FIFOTEST_OUT_READY_ADDR);
+      auto outfifo_level = registers+roffset(CSR_FIFOTEST_OUT_LEVEL_ADDR);
+
+      uint32_t counter = 0;
+      int prev_level = -1;
+      while(0==app_lifecycle_state.load()){
+            if( csr_read8(outfifo_ready) ){
+              csr_write32(outfifo_data,counter++);
+            }
+            int level = csr_read8(outfifo_level);
+            if(level!=prev_level)
+                printf( "outfifo-level<%d>\n", level);
+            prev_level=level;
+            usleep(1<<10);
+      }
+  });
+  ///////////////////////////////////////////////////
+  auto thr_fifo_recv = new std::thread([&](){
+
+      auto inpfifo_data = registers+roffset(CSR_FIFOTEST_INP_DATAREG_ADDR);
+      auto inpfifo_avail = registers+roffset(CSR_FIFOTEST_INP_DATAAVAIL_ADDR);
+      auto inpfifo_level = registers+roffset(CSR_FIFOTEST_INP_LEVEL_ADDR);
+
+      uint32_t counter = 0;
+
+      usleep(4<<20); // let the producer get ahead a bit
+
+      while(0==app_lifecycle_state.load()){
+          if( csr_read8(inpfifo_avail) ){
+              uint32_t value = csr_read32(inpfifo_data);
+          }
+          int level = csr_read8(inpfifo_level);
+          printf( "inpfifo-level<%d>\n", level);
+          usleep(1<<20);
+      }
+  });
+  ///////////////////////////////////////////////////
   // threads
   ///////////////////////////////////////////////////
   _threads.insert(thra);
   _threads.insert(thrb);
   _threads.insert(thrc);
   _threads.insert(thrd);
+
+  _threads.insert(thr_fifo_send);
+  _threads.insert(thr_fifo_recv);
   ///////////////////////////////////////////////////
   // comms(0mq) thread
   ///////////////////////////////////////////////////

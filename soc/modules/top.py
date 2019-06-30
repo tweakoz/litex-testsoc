@@ -15,7 +15,9 @@ from litex.soc.cores import gpio, uart
 
 from squaregen import SQUGEN
 import pwm
-import os 
+import os
+
+from migen.genlib.fifo import SyncFIFOBuffered as SynchronousFifo
 
 ######################################################
 
@@ -28,18 +30,155 @@ class RGBLed(Module, AutoCSR):
     self.submodules.b = pwm.PWM(io.b, invert=False)
 
 
-class PMOD(Module, AutoCSR):
+class PMODGPOUT(Module, AutoCSR):
   def __init__(self, soc, ioname):
-    super(PMOD, self).__init__()
+    super(PMODGPOUT, self).__init__()
     ios = soc.platform.request(ioname, 0)
-    self.submodules.io1 = SQUGEN(soc, ios.io1)
+    self.submodules.io1 = gpio.GPIOOut(ios.io1)
     self.submodules.io2 = gpio.GPIOOut(ios.io2)
-    self.submodules.io3 = SQUGEN(soc, ios.io3)
-    self.submodules.io4 = SQUGEN(soc, ios.io4)
-    self.submodules.io5 = SQUGEN(soc, ios.io5)
-    self.submodules.io6 = SQUGEN(soc, ios.io6)
-    self.submodules.io7 = SQUGEN(soc, ios.io7)
-    self.submodules.io8 = SQUGEN(soc, ios.io8)
+    self.submodules.io3 = gpio.GPIOOut(ios.io3)
+    self.submodules.io4 = gpio.GPIOOut(ios.io4)
+    self.submodules.io5 = gpio.GPIOOut(ios.io5)
+    self.submodules.io6 = gpio.GPIOOut(ios.io6)
+    self.submodules.io7 = gpio.GPIOOut(ios.io7)
+    self.submodules.io8 = gpio.GPIOOut(ios.io8)
+
+class PMODGPINP(Module, AutoCSR):
+  def __init__(self, soc, ioname):
+    super(PMODGPINP, self).__init__()
+    ios = soc.platform.request(ioname, 0)
+    self.submodules.io1 = gpio.GPIOIn(ios.io1)
+    self.submodules.io2 = gpio.GPIOIn(ios.io2)
+    self.submodules.io3 = gpio.GPIOIn(ios.io3)
+    self.submodules.io4 = gpio.GPIOIn(ios.io4)
+    self.submodules.io5 = gpio.GPIOIn(ios.io5)
+    self.submodules.io6 = gpio.GPIOIn(ios.io6)
+    self.submodules.io7 = gpio.GPIOIn(ios.io7)
+    self.submodules.io8 = gpio.GPIOIn(ios.io8)
+
+################################################
+# generate a 1 clock pulse on a recurring period
+################################################
+
+class Pulsor(Module):
+    def __init__(self):
+        self.output = output  = Signal()
+        self.counter = counter = Signal(24)
+        self.prevcounter = prvcnt = Signal(24)
+
+        self.sync += [
+            prvcnt.eq(counter),
+            counter.eq(counter + 1),
+        ]
+        self.comb += [
+            # should trigger when:
+            # counter=0x800000, prvcnt==0x7fffff
+            # and
+            # counter=0x000000, prvcnt==0xffffff
+            # @ 100mhz - should fire about 12 times a second..
+            output.eq(counter[23]!=prvcnt[23])
+        ]
+
+###################################
+# Simple IRQ generator test
+#  should fire an IRQ 12 times a second
+#   (when pulsor fires)
+###################################
+
+class IRQTest(Module, AutoCSR):
+  def __init__(self, soc):
+
+    self.submodules.pulsor = pulsor = Pulsor()
+
+    ####################
+    # create IRQ event(s)
+    ####################
+
+    self.submodules.ev = EventManager()
+    self.ev.pulsor = EventSourcePulse() # one shot
+
+    ####################
+
+    soc.comb += [
+        self.ev.pulsor.trigger.eq(pulsor.output),
+    ]
+
+#######################################################
+# Simple CPU->HW and HW->CPU FIFO test
+#######################################################
+
+class FIFOTest(Module, AutoCSR):
+
+  def __init__(self, soc):
+
+    fifo_width = 32 # 32 bits wide
+    fifo_depth = 64 # 64 items in fifo
+
+    #####################################################
+    # out fifo (CPU->FIFO)
+    #####################################################
+
+    out_fifo_raw = SynchronousFifo(fifo_width, fifo_depth)
+    out_fifo = ResetInserter()(out_fifo_raw)
+
+    soc.submodules += out_fifo
+
+    self.out_datareg = CSRStorage(fifo_width, reset=0)
+    self.out_ready = CSRStatus()
+    self.out_level = CSRStatus(log2_int(fifo_depth)+1)
+
+    soc.comb += [
+
+        ####################
+        # (CPU->OUTFIFO)
+        ####################
+
+        out_fifo.we.eq(self.out_datareg.re),
+        out_fifo.din[0:fifo_width].eq(self.out_datareg.storage[0:fifo_width]),
+
+        ####################
+        # control / status
+        ####################
+
+        self.out_ready.status.eq(out_fifo.writable),
+        self.out_level.status.eq(out_fifo.level),
+    ]
+
+    #####################################################
+    # inp fifo (FIFO->CPU) just mirrors what went into out_fifo
+    #####################################################
+
+    self.inp_datareg = CSRStorage(fifo_width, reset=0)
+    self.inp_dataavail = CSRStatus()
+    self.inp_level = CSRStatus(log2_int(fifo_depth)+1)
+
+    inp_fifo_raw = SynchronousFifo(fifo_width, fifo_depth)
+    inp_fifo = ResetInserter()(inp_fifo_raw)
+
+    soc.comb += [
+
+        ####################
+        # (OUTFIFO->INPFIFO)
+        ####################
+
+        inp_fifo.din[0:fifo_width].eq(out_fifo.dout[0:fifo_width]), # outfifo feeds inpfifo
+        inp_fifo.we.eq(out_fifo.readable & inp_fifo.writable), # trigger input read transaction
+        out_fifo.re.eq(out_fifo.readable & inp_fifo.writable), # trigger output write transaction
+
+        ####################
+        # (INPFIFO->CPU)
+        ####################
+
+        self.inp_datareg.storage[0:fifo_width].eq(inp_fifo.dout[0:fifo_width]),
+
+        ####################
+        # control / status
+        ####################
+
+        self.inp_dataavail.status.eq(inp_fifo.readable),
+        self.inp_level.status.eq(inp_fifo.level),
+
+    ]
 
 #######################################################
 
@@ -74,6 +213,8 @@ EtherSoc.mem_map["main_ram"] = 0xc0000000
 # EtherSoc.mem_map["vexriscv_debug"] = 0xe0000000
 EtherSoc.mem_map["csr"] = 0xf0000000
 #######################################################
+EtherSoc.interrupt_map["pulsor"] = 4 # dynamically assign?
+#######################################################
 soc = EtherSoc(
     cpu_type="vexriscv",
     cpu_variant="linux+debug",
@@ -82,11 +223,6 @@ soc = EtherSoc(
     csr_address_width=16,
     uart_baudrate=115200
 )
-#soc.register_mem( "vexriscv_debug",
-#                  soc.mem_map["vexriscv_debug"],
-#                  soc.cpu.debug_bus,
-#                  0x10)
-
 #######################################################
 soc.platform.add_extension([
     ("dbgserial", 0,
@@ -124,7 +260,7 @@ soc.platform.add_extension([
        Subsignal("io5",  Pins("D13")), # p7
        Subsignal("io6",  Pins("B18")), # p8
        Subsignal("io7",  Pins("A18")), # p9
-       Subsignal("io8", Pins("K16")),  # p10
+       Subsignal("io8",  Pins("K16")),  # p10
        IOStandard("LVCMOS33")
     ),
     ("pmodC", 0,
@@ -135,13 +271,13 @@ soc.platform.add_extension([
        Subsignal("io5",  Pins("U14")), # p7
        Subsignal("io6",  Pins("V14")), # p8
        Subsignal("io7",  Pins("T13")), # p9
-       Subsignal("io8", Pins("U13")), # p10
+       Subsignal("io8",  Pins("U13")), # p10
        IOStandard("LVCMOS33")
     )
 ])
 
 ######################################################
-# add uart/wishbone debug bridge
+# UART/Wishbone debug bridge (for VexRiscV debug port)
 ######################################################
 
 soc.submodules.bridge  = uart.UARTWishboneBridge( soc.platform.request("dbgserial"),
@@ -150,8 +286,18 @@ soc.submodules.bridge  = uart.UARTWishboneBridge( soc.platform.request("dbgseria
 
 soc.add_wb_master(soc.bridge.wishbone)
 
+#################################################
+# disabled - because SOC is DOA when enabled
+#################################################
+#soc.register_mem( "vexriscv_debug",
+#                  soc.mem_map["vexriscv_debug"],
+#                  soc.cpu.debug_bus,
+#                  0x10)
+#################################################
+
+
 ###################################
-# machine mode emulator ram
+# VexRiscV Machine Mode Emulator SRAM
 ###################################
 
 soc.submodules.emulator_ram = wishbone.SRAM(0x4000)
@@ -160,7 +306,7 @@ soc.register_mem( "emulator_ram",
                   soc.emulator_ram.bus, 0x4000)
 
 ###################################
-# RGB Led
+# RGB Leds
 ###################################
 
 soc.submodules.rgbledA = RGBLed(soc,"rgb_led",0)
@@ -174,11 +320,27 @@ soc.add_csr("rgbledC")
 soc.add_csr("rgbledD")
 
 ###################################
-# pmods
+# GPIO's
 ###################################
 
-#soc.submodules.pmodC = PMOD(soc,"inner_digital_header")
-#soc.add_csr("pmodC")
+soc.submodules.pmodA = PMODGPOUT(soc,"pmodA")
+soc.submodules.pmodC = PMODGPINP(soc,"pmodC")
+soc.add_csr("pmodA")
+soc.add_csr("pmodC")
+
+###################################
+# IRQ test
+###################################
+
+soc.submodules.irqtest = IRQTest(soc)
+soc.add_csr("irqtest")
+
+###################################
+# FIFO test
+###################################
+
+soc.submodules.fifotest = FIFOTest(soc)
+soc.add_csr("fifotest")
 
 ###################################
 
@@ -189,6 +351,10 @@ configureEthernet( soc,
                    local_ip=soc_ip,
                    remote_ip=tftp_ip )
 configureBoot(soc)
+
+###################################
+# return SOC to caller
+###################################
 
 def get():
     return soc

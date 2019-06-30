@@ -139,8 +139,8 @@ config_defaults = {
 }
 
 soc_config_path = stage_dir/"soc-config.json"
-my_config = ork.config.load( soc_config_path,
-                             config_defaults )
+my_config = ork.config.merge( soc_config_path,
+                              config_defaults )
 import json
 print(deco.white("###############################"))
 print(deco.white("## soc configuration file<%s>"%deco.path(soc_config_path)))
