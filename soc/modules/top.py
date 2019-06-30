@@ -15,6 +15,7 @@ from litex.soc.cores import gpio, uart
 
 from squaregen import SQUGEN
 import pwm
+import os 
 
 ######################################################
 
@@ -181,9 +182,12 @@ soc.add_csr("rgbledD")
 
 ###################################
 
+soc_ip = os.environ["SOCIPADDR"]
+tftp_ip = os.environ["DEVHOSTIP"]
+
 configureEthernet( soc,
-                   local_ip="192.168.1.1",
-                   remote_ip="192.168.1.2" )
+                   local_ip=soc_ip,
+                   remote_ip=tftp_ip )
 configureBoot(soc)
 
 def get():
