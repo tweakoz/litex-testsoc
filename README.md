@@ -3,6 +3,11 @@
 
 ## Launching the environment:
 
+You may have to install some system dependencies, ones that come to mind:
+* Vivado
+* ```sudo apt-get install device-tree-compiler source-highlight```
+
+
 To initialize the environment (after cloning):
  ```
 cd <repository-root>
