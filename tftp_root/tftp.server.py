@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+################################################
+# modified from gist
+# https://gist.github.com/anthonygclark/5377510
+################################################
+
 import os, binascii, sys, time
 
 from twisted.internet.protocol import DatagramProtocol
