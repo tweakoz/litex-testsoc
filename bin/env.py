@@ -43,7 +43,7 @@ new_venv = False
 
 if not os.path.exists(stage_dir):
     os.system("%s --create %s --command 'echo nop'"%(obt_init_env,stage_dir))
-    os.system("virtualenv %s"%pyenv_dir)
+    os.system("virtualenv -p /usr/bin/python3 %s"%pyenv_dir)
     new_venv = True
 
 sys.path.append(str(obt_dir/"scripts"))
