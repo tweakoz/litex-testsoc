@@ -53,7 +53,7 @@ inline uint32_t csr_read32(uint8_t* baseaddr){
     uint32_t rvalb = reg<uint8_t>(baseaddr,0x04);
     uint32_t rvalc = reg<uint8_t>(baseaddr,0x08);
     uint32_t rvald = reg<uint8_t>(baseaddr,0x0c);
-    uint32_t rval = rvala|(rvalb<<8)|(rvalc<<16)|(rvald<<24);
+    uint32_t rval = rvald|(rvalc<<8)|(rvalb<<16)|(rvala<<24);
     return rval;
 }
 inline uint64_t csr_read64(uint8_t* baseaddr){

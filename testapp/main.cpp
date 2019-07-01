@@ -221,7 +221,7 @@ int main( int argc, const char** argv ){
             if(level!=prev_level)
                 printf( "outfifo-level<%d>\n", level);
             prev_level=level;
-            usleep(1<<10);
+            usleep(1<<18);
       }
   });
   ///////////////////////////////////////////////////
@@ -230,17 +230,22 @@ int main( int argc, const char** argv ){
       auto inpfifo_data = registers+roffset(CSR_FIFOTEST_INP_DATAREG_ADDR);
       auto inpfifo_avail = registers+roffset(CSR_FIFOTEST_INP_DATAAVAIL_ADDR);
       auto inpfifo_level = registers+roffset(CSR_FIFOTEST_INP_LEVEL_ADDR);
-
+      auto inpfifo_ack = registers+roffset(CSR_FIFOTEST_INP_ACK_ADDR);
       uint32_t counter = 0;
 
       usleep(4<<20); // initial delay
 
       while(0==app_lifecycle_state.load()){
-          if( csr_read8(inpfifo_avail) ){
+
+          size_t max_per_iter = 8;
+          size_t count = 0;
+          while( count<max_per_iter and csr_read8(inpfifo_avail) ){
               uint32_t value = csr_read32(inpfifo_data);
+              csr_write8(inpfifo_ack,0xff);
+              int level = csr_read8(inpfifo_level);
+              printf( "value<%zu> count<%zu> inpfifo-level<%d>\n", value, count, level);
+              count++;
           }
-          int level = csr_read8(inpfifo_level);
-          printf( "inpfifo-level<%d>\n", level);
           usleep(1<<20);
       }
   });

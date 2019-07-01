@@ -148,9 +148,10 @@ class FIFOTest(Module, AutoCSR):
     # inp fifo (FIFO->CPU) just mirrors what went into out_fifo
     #####################################################
 
-    self.inp_datareg = CSRStorage(fifo_width, reset=0,write_from_dev=True)
+    self.inp_datareg = CSRStatus(fifo_width)
     self.inp_dataavail = CSRStatus()
     self.inp_level = CSRStatus(log2_int(fifo_depth)+1)
+    self.inp_ack = CSR()
 
     inp_fifo_raw = SynchronousFifo(fifo_width, fifo_depth)
     inp_fifo = ResetInserter()(inp_fifo_raw)
@@ -164,23 +165,23 @@ class FIFOTest(Module, AutoCSR):
         inp_fifo.we.eq(out_fifo.readable & inp_fifo.writable), # inp_fifo read transaction
         out_fifo.re.eq(inp_fifo.we), # out_fifo read ack (above delayed by one cycle)
 
-        # (INPFIFO->CPU)
-
-        #inp_fifo.re.eq( ??? ), # ??? how do I ack a read from the CPU ???
-                                #   uart uses self.ev.rx.clear
-                                #   I don't think Linux Supervisor mode has interrupts yet...
-                                # And even then it useful to know how to do it with programmed IO
-                                # Is it possible to do a CPU->WBBUS->CSR read transaction ack here?
     ]
     soc.comb += [
 
         # (OUTFIFO->INPFIFO)
 
+
         inp_fifo.din[0:fifo_width].eq(out_fifo.dout[0:fifo_width]), # outfifo feeds inpfifo
 
         # (INPFIFO->CPU)
 
-        self.inp_datareg.storage[0:fifo_width].eq(inp_fifo.dout[0:fifo_width]),
+        self.inp_datareg.status[0:fifo_width].eq(inp_fifo.dout[0:fifo_width]),
+
+        inp_fifo.re.eq( self.inp_ack.re ), # ??? how do I ack a read from the CPU ???
+                                #   uart uses self.ev.rx.clear
+                                #   I don't think Linux Supervisor mode has interrupts yet...
+                                # And even then it useful to know how to do it with programmed IO
+                                # Is it possible to do a CPU->WBBUS->CSR read transaction ack here?
 
         # control / status
 
