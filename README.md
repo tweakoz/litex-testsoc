@@ -1,5 +1,5 @@
 # TestSoc:
-  Yet another *Litex/Linux/VexRiscV* SOC test (With integrated build environment). This SOC does not do much, it runs linux, blinks leds and talks over a network. It can mount a nfs folder from your devhost. It's primary purpose is as a toy project for use in communicating with other FPGA toolchain developers about the toolchains. It currently only runs on a Digilent Arty, but we can add other targets when needed. The enviroment is currently only 'certified' on Ubuntu 18.04 LTS. We can certify other OS's as data from other brave souls trickles in.
+  Yet another *Litex/Linux/VexRiscV* SOC test (With integrated build environment). This was derived from https://github.com/litex-hub/linux-on-litex-vexriscv. TestSoc is not meant for useful work. It runs linux, blinks leds and talks over a network. It can mount a nfs folder from your devhost. It's primary purpose is as a toy project for use in communicating with other FPGA toolchain developers about the toolchains. It currently only runs on a Digilent Arty, but we can add other targets when needed. The enviroment is currently only 'certified' on Ubuntu 18.04 LTS. We can certify other OS's as data from other brave souls trickles in.
 
 ## Launching the environment:
 

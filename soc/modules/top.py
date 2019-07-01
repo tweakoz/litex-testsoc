@@ -112,7 +112,7 @@ class FIFOTest(Module, AutoCSR):
   def __init__(self, soc):
 
     fifo_width = 32 # 32 bits wide
-    fifo_depth = 64 # 64 items in fifo
+    fifo_depth = 16 # 16 items in fifo
 
     #####################################################
     # out fifo (CPU->FIFO)
@@ -133,8 +133,8 @@ class FIFOTest(Module, AutoCSR):
         # (CPU->OUTFIFO)
         ####################
 
-        out_fifo.we.eq(self.out_datareg.re),
         out_fifo.din[0:fifo_width].eq(self.out_datareg.storage[0:fifo_width]),
+        out_fifo.we.eq(self.out_datareg.re),
 
         ####################
         # control / status
@@ -148,32 +148,38 @@ class FIFOTest(Module, AutoCSR):
     # inp fifo (FIFO->CPU) just mirrors what went into out_fifo
     #####################################################
 
-    self.inp_datareg = CSRStorage(fifo_width, reset=0)
+    self.inp_datareg = CSRStorage(fifo_width, reset=0,write_from_dev=True)
     self.inp_dataavail = CSRStatus()
     self.inp_level = CSRStatus(log2_int(fifo_depth)+1)
 
     inp_fifo_raw = SynchronousFifo(fifo_width, fifo_depth)
     inp_fifo = ResetInserter()(inp_fifo_raw)
 
+    soc.sync += [
+
+        # (OUTFIFO->INPFIFO)
+
+        inp_fifo.we.eq(out_fifo.readable & inp_fifo.writable), # inp_fifo read transaction
+        out_fifo.re.eq(inp_fifo.we), # out_fifo read ack (above delayed by one cycle)
+
+        # (INPFIFO->CPU)
+
+        #inp_fifo.re.eq( ??? ), # ??? how do I ack a read from the CPU ???
+                                #   uart uses self.ev.rx.clear
+                                #   I dont Linux Supervisor mode has interrupts yet...
+                                # Is it possible to do a CPU->WBBUS->CSR read transaction ack here?
+    ]
     soc.comb += [
 
-        ####################
         # (OUTFIFO->INPFIFO)
-        ####################
 
         inp_fifo.din[0:fifo_width].eq(out_fifo.dout[0:fifo_width]), # outfifo feeds inpfifo
-        inp_fifo.we.eq(out_fifo.readable & inp_fifo.writable), # trigger input read transaction
-        out_fifo.re.eq(out_fifo.readable & inp_fifo.writable), # trigger output write transaction
 
-        ####################
         # (INPFIFO->CPU)
-        ####################
 
         self.inp_datareg.storage[0:fifo_width].eq(inp_fifo.dout[0:fifo_width]),
 
-        ####################
         # control / status
-        ####################
 
         self.inp_dataavail.status.eq(inp_fifo.readable),
         self.inp_level.status.eq(inp_fifo.level),

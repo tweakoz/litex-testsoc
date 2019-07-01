@@ -233,7 +233,7 @@ int main( int argc, const char** argv ){
 
       uint32_t counter = 0;
 
-      usleep(4<<20); // let the producer get ahead a bit
+      usleep(4<<20); // initial delay
 
       while(0==app_lifecycle_state.load()){
           if( csr_read8(inpfifo_avail) ){
