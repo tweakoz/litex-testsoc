@@ -168,7 +168,8 @@ class FIFOTest(Module, AutoCSR):
 
         #inp_fifo.re.eq( ??? ), # ??? how do I ack a read from the CPU ???
                                 #   uart uses self.ev.rx.clear
-                                #   I dont Linux Supervisor mode has interrupts yet...
+                                #   I don't think Linux Supervisor mode has interrupts yet...
+                                # And even then it useful to know how to do it with programmed IO
                                 # Is it possible to do a CPU->WBBUS->CSR read transaction ack here?
     ]
     soc.comb += [
