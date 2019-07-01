@@ -5,7 +5,7 @@
 
 You may have to install some system dependencies. Ones that come to mind:
 * Vivado
-* ```sudo apt install device-tree-compiler source-highlight virtualenv```
+* ```sudo apt install device-tree-compiler source-highlight virtualenv python3-virtualenv python3-pip```
 
 
 To initialize the environment (after cloning):
@@ -80,4 +80,3 @@ Assuming all went well:
   * ***${DEVHOSTIP}*** : the development host's IP address (for the TFTP server)
   * ***${NFSHOSTIP}*** : an optional NFS server IP address
   * ***${VIRTUAL_ENV}*** : python virtual environment
-
