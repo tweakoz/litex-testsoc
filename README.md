@@ -67,7 +67,7 @@ Assuming all went well:
      ```connect.soc.py```
 
 
-* When you are finished playing, just exit your *env shells*, you can always re-enter them later by running ```testsoc/bin/env.py```
+* When you are finished playing, just exit your *env shells*, you can always re-enter them later by running ```<repository-root>/bin/env.py```
 
 * If you want to add stuff on to the environment, best practice would be to use the environment variables for placing files. Some of the environment variables include:
   * ***${PROJECT_ROOT}*** : the directory of the git repo you checked out. Contains the staging folder, and a few submodules.
