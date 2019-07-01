@@ -52,9 +52,7 @@ Assuming all went well:
 
   * Start the TFTP server (from one of your idle *env shells*):
 
-    ```cd ${PROJECT_ROOT}/tftp_root```
-
-    ```./tftp_server.py``` <- leave running in background
+    ```${PROJECT_ROOT}/tftp_root/tftp_server.py``` <- leave running in background
 
   * From another of your idle *env shells*, Find your board's tty
 
