@@ -155,6 +155,8 @@ class FIFOTest(Module, AutoCSR):
     inp_fifo_raw = SynchronousFifo(fifo_width, fifo_depth)
     inp_fifo = ResetInserter()(inp_fifo_raw)
 
+    soc.submodules += inp_fifo
+
     soc.sync += [
 
         # (OUTFIFO->INPFIFO)
