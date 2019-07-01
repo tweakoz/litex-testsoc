@@ -83,4 +83,4 @@ Assuming all went well:
   * ***${NFSHOSTIP}*** : an optional NFS server IP address
   * ***${VIRTUAL_ENV}*** : python virtual environment
 
-  * You can view the environment's current SOC configuration variables using the command ```socvars.py```
+* You can view the environment's current SOC configuration variables using the command ```socvars.py```
