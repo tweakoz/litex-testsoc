@@ -6,7 +6,7 @@
 You may have to install some system dependencies. Ones that come to mind:
 * Vivado
 * ```sudo apt install device-tree-compiler source-highlight virtualenv python3-virtualenv python3-pip```
-
+* ```pip install configparser``` <-- meant for default python in path named just *python*
 
 To initialize the environment (after cloning):
  ```
