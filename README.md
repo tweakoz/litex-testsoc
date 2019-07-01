@@ -16,7 +16,7 @@ cd <repository-root>
 
 This should download any required dependencies into ```<repository-root>/.stage``` known as the ***staging folder***, then initialize and launch the dev environment. All build products should go into the *staging folder*, so you can start afresh by just exiting all *env shells* bound to that staging folder and deleting it, and relaunching your env. This would come with the expense of time spent rebuilding and downloading *everything*.
 
-Some SOC configuration settings will be defaulted and persisted in *.stage/soc-config.json* - feel free to edit these to match your settings, after editing you will need to exit your env (just type ```exit``` at the shell prompt), and restart the env ( ```./bin/env``` ).
+Some SOC configuration settings will be defaulted and persisted in *.stage/soc-config.json* - feel free to edit these to match your settings, after editing you will need to exit your env (just type ```exit``` at the shell prompt), and restart the env ( ```./bin/env``` ). You can also view the environment's current SOC configuration variables using the command ```socvars.py```
 
 
 ## Using the environment:
@@ -81,4 +81,3 @@ Assuming all went well:
   * ***${NFSHOSTIP}*** : an optional NFS server IP address
   * ***${VIRTUAL_ENV}*** : python virtual environment
 
-* You can view the environment's current SOC configuration variables using the command ```socvars.py```
