@@ -1,0 +1,6 @@
+container:
+  image: $DOCKER_IMAGE
+check_task:
+  script:
+    - ./bin/env.py 
+
