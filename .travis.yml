@@ -1,0 +1,26 @@
+language: python3
+
+matrix:
+  include:
+      os: linux
+
+services:
+  - docker
+
+before_install:
+  - docker pull tweakoz/fpga-builders:bionic-vivado-2019.1
+  - docker run tweakoz/fpga-builders:bionic-vivado-2019.1 /bin/sh -c "find /"
+
+install:
+#  - echo yo
+
+script:
+  ./bin/env.py 
+
+branches:
+  only:
+    - master
+
+notifications:
+  email: false
+
