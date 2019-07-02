@@ -1,6 +1,0 @@
-container:
-  image: ENCRYPTED[19acd591ee45016ff41c34b9a125360747c5c02d8102797ff4a900c7e89fbf6550146e2c510d6cbef92cc11fb603dfb5]
-check_task:
-  script:
-    - ./bin/env.py 
-
