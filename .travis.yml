@@ -9,8 +9,8 @@ services:
 
 before_install:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker pull tweakoz/fpga-builders:bionic-vivado-2019.1
-  - docker run tweakoz/fpga-builders:bionic-vivado-2019.1 /bin/sh -c "find /"
+  - docker pull $DOCKER_IMAGE
+  - docker run $DOCKER_IMAGE /bin/sh -c "find /"
 
 install:
 #  - echo yo
