@@ -176,7 +176,7 @@ try:
     import litex
 except:
     os.chdir(builddir)
-    os.system("wget https://raw.githubusercontent.com/enjoy-digital/litex/master/litex_setup.py")
+    os.system("wget https://raw.githubusercontent.com/tweakoz/litex/tweakoz/diagnose_csr/litex_setup.py")
     os.system("python3 ./litex_setup.py init install")
     os.system("python3 ./litex_setup.py update")
 

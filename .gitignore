@@ -1,2 +1,10 @@
 .stage
 *__pycache__
+
+*.bin
+
+*.elf
+
+*.gtkw
+
+*.map
