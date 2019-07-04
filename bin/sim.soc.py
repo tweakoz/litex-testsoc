@@ -5,7 +5,6 @@ from pathlib import Path
 from migen import *
 from litex.soc.interconnect.csr import *
 from litex.soc.integration.builder import *
-from litex.soc.integration.builder import *
 from litex.soc.integration.soc_core import *
 from litex.build.generic_platform import *
 
@@ -28,7 +27,7 @@ import struct
 this_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 prjroot = Path(os.environ["PROJECT_ROOT"])
 output_dir = Path(os.environ["SOC_BUILD_DIR"])/"simulation"
-sys.path.append(str(this_dir/".."/"modules"))
+sys.path.append(str(prjroot/"soc"/"modules"))
 import top
 
 ###################################
@@ -130,7 +129,7 @@ class SimCore(SoCCore):
       print("##################################")
       print("# Embedding Firmware")
       print("##################################")
-      with open(str("../testapp-standalone/main.bin"), "rb") as boot_file:
+      with open(str(prjroot/"testapp-standalone"/".build"/"main-sim.bin"), "rb") as boot_file:
         while True:
             w = boot_file.read(4)
             if not w:

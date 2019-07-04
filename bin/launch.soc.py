@@ -6,6 +6,7 @@ from ork.command import run
 
 parser = argparse.ArgumentParser(description='testsoc launcher')
 parser.add_argument('--tty', metavar="tty", default=None, help='arty programming tty' )
+parser.add_argument('--standalone', action="store_true", default=None, help='arty programming tty' )
 
 args = vars(parser.parse_args())
 
@@ -21,9 +22,11 @@ if args["tty"] != None:
 print(tty)
 
 soc_dir = Path(os.environ["SOC_BUILD_DIR"])
-loader = soc_dir/"software"/"chainloader"/"chainloader.bin"
+prjroot = Path(os.environ["PROJECT_ROOT"])
 
-assert(os.path.exists(loader))
+chainloader = soc_dir/"software"/"chainloader"/"chainloader.bin"
+standalone = prjroot/"testapp-standalone"/".build"/"main-device.bin"
+
 assert(os.path.exists(tty))
 
 run(["build.manifest.py"])
@@ -34,8 +37,18 @@ run([ "djtgcfg",
       "-i", "0",
       "-f", soc_dir/"gateware"/"top.bit" ])
 
-run([ "litex_term",
+if args["standalone"]:
+  assert(os.path.exists(standalone))
+  run([ "litex_term",
       "--speed", "115200",
       tty,
-      "--kernel",loader,
+      "--kernel",standalone,
+      "--kernel-adr","c0000000"])
+
+else:
+  assert(os.path.exists(chainloader))
+  run([ "litex_term",
+      "--speed", "115200",
+      tty,
+      "--kernel",chainloader,
       "--kernel-adr","cff00000"])

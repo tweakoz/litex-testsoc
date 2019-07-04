@@ -2,6 +2,12 @@
 
 import argparse, os, sys
 from pathlib import Path
+
+from migen import *
+from litex.soc.interconnect.csr import *
+from litex.soc.integration.builder import *
+from litex.soc.integration.soc_core import *
+from litex.build.generic_platform import *
 import litex.boards.targets.arty
 
 ###################################
@@ -9,7 +15,7 @@ import litex.boards.targets.arty
 this_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 prjroot = Path(os.environ["PROJECT_ROOT"])
 output_dir = Path(os.environ["SOC_BUILD_DIR"])
-sys.path.append(str(this_dir/".."/"modules"))
+sys.path.append(str(prjroot/"soc"/"modules"))
 import top
 
 ###################################
@@ -74,8 +80,6 @@ def extensions(soc):
 
 the_top = top.GenSoc( litex.boards.targets.arty.EthernetSoC,
                       extensions )
-
-from litex.soc.integration.builder import *
 
 builder = Builder( the_top,
                    output_dir=output_dir,

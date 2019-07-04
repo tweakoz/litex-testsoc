@@ -129,7 +129,7 @@ class FIFOTest(Module, AutoCSR):
     self.comb += [
 
         ####################
-        # (CPU->OUTFIFO)
+        # CPU->OUTFIFO
         ####################
 
         out_fifo.din[0:fifo_width].eq(self.out_datareg.storage[0:fifo_width]),
@@ -144,11 +144,13 @@ class FIFOTest(Module, AutoCSR):
     ]
 
     #####################################################
+    # useless machinery
     # inp fifo (FIFO->CPU) just mirrors what went into out_fifo
     #####################################################
 
     # cant use a CSR for inp_datareg, CSRs dont work correctly with 32 bit words
     #  mainly because bus widths
+    # so use a CSRStatus which can break up fifo_width(32) into bus_width(8) chunks
 
     self.inp_datareg = CSRStatus(fifo_width)
     self.inp_dataavail = CSRStatus()
@@ -164,15 +166,22 @@ class FIFOTest(Module, AutoCSR):
 
     self.sync += [
 
-        # (OUTFIFO->INPFIFO)
+        ####################
+        # OUTFIFO->INPFIFO
+        ####################
 
         delayx.eq(out_fifo.fifo.readable),
 
         inp_fifo.we.eq(delayx & inp_fifo.writable), # inp_fifo read transaction
         out_fifo.re.eq(inp_fifo.we), # out_fifo read ack (above delayed by one cycle)
 
-
         inp_fifo.din[0:fifo_width].eq(out_fifo.dout[0:fifo_width]), # outfifo feeds inpfifo
+
+        ####################
+        # INPFIFO->CPU
+        ####################
+
+        inp_fifo.re.eq( self.inp_ack.re ), # read ack from CPU
 
     ]
 
@@ -180,27 +189,6 @@ class FIFOTest(Module, AutoCSR):
         self.inp_datareg.status[0:fifo_width].eq(inp_fifo.fifo.dout[0:fifo_width]),
         self.inp_dataavail.status.eq(inp_fifo.readable),
         self.inp_level.status.eq(inp_fifo.level),
-    ]
-
-    self.sync += [
-
-        inp_fifo.re.eq( self.inp_ack.re ), # ??? how do I ack a read from the CPU ???
-                                #   uart uses self.ev.rx.clear
-                                #   I don't think Linux Supervisor mode has interrupts yet...
-                                # And even then it useful to know how to do it with programmed IO
-                                # Is it possible to do a CPU->WBBUS->CSR read transaction ack here?
-
-        # control / status
-
-    ]
-    self.comb += [
-
-        # (OUTFIFO->INPFIFO)
-
-
-        # (INPFIFO->CPU)
-
-
     ]
 
 #######################################################

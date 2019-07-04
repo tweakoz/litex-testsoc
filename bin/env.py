@@ -158,6 +158,7 @@ ork.env.prepend("PATH",openocd_dir/"bin")
 ork.env.prepend("PATH",buildroot_dir/"output"/"host"/"bin")
 ork.env.prepend("PATH",this_dir)
 ork.env.prepend("PATH",soc_dir/"bin")
+ork.env.prepend("PATH",project_root/"testapp-standalone"/"bin")
 
 ork.env.set("SOC_DIR",soc_dir)
 ork.env.set("OUTPUT_DIR",builddir/"soc")
