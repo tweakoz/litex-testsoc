@@ -24,6 +24,10 @@ import struct
 
 ###################################
 
+clock_frq = 3e6
+
+###################################
+
 this_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 prjroot = Path(os.environ["PROJECT_ROOT"])
 output_dir = Path(os.environ["SOC_BUILD_DIR"])/"simulation"
@@ -102,7 +106,7 @@ _io = [
 
 class Platform(SimPlatform):
     default_clk_name = "sys_clk"
-    default_clk_period = 10 # ~ 100MHz
+    default_clk_period = 1e9/clock_frq
 
     def __init__(self):
         SimPlatform.__init__(self, "SIM", _io)
@@ -141,7 +145,7 @@ class SimCore(SoCCore):
         _platform = Platform()
         super(SimCore,self).__init__( platform=_platform,
                                       with_uart=False,
-                                      clk_freq=int(100e6),
+                                      clk_freq=int(clock_frq),
                                       integrated_rom_size=0x8000,
                                       integrated_sram_size=0x8000,
                                       integrated_main_ram_size=0x10000000, # 256MB

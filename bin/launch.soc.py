@@ -52,3 +52,5 @@ else:
       tty,
       "--kernel",chainloader,
       "--kernel-adr","cff00000"])
+
+run(["stty","sane"])

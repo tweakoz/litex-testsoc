@@ -16,7 +16,7 @@ from squaregen import SQUGEN
 import pwm
 import os
 
-from migen.genlib.fifo import SyncFIFOBuffered as SynchronousFifo
+from migen.genlib.fifo import SyncFIFO as SynchronousFifo
 
 ######################################################
 
@@ -125,8 +125,9 @@ class FIFOTest(Module, AutoCSR):
     self.out_datareg = CSRStorage(fifo_width, reset=0)
     self.out_ready = CSRStatus()
     self.out_level = CSRStatus(log2_int(fifo_depth)+1)
+    self.out_reset = CSRStorage(reset=0)
 
-    self.comb += [
+    self.sync += [
 
         ####################
         # CPU->OUTFIFO
@@ -134,6 +135,8 @@ class FIFOTest(Module, AutoCSR):
 
         out_fifo.din[0:fifo_width].eq(self.out_datareg.storage[0:fifo_width]),
         out_fifo.we.eq(self.out_datareg.re),
+        out_fifo.reset.eq(self.out_reset.re),
+        out_fifo.replace.eq(0),
 
         ####################
         # control / status
@@ -156,6 +159,8 @@ class FIFOTest(Module, AutoCSR):
     self.inp_dataavail = CSRStatus()
     self.inp_level = CSRStatus(8)
     self.inp_ack = CSR()
+    self.inp_reset = CSRStorage(reset=0)
+    self.inp_writable = CSRStatus()
 
     inp_fifo_raw = SynchronousFifo(fifo_width, fifo_depth)
     inp_fifo = ResetInserter()(inp_fifo_raw)
@@ -170,12 +175,13 @@ class FIFOTest(Module, AutoCSR):
         # OUTFIFO->INPFIFO
         ####################
 
-        delayx.eq(out_fifo.fifo.readable),
+        delayx.eq(out_fifo.we),
 
-        inp_fifo.we.eq(delayx & inp_fifo.writable), # inp_fifo read transaction
+        inp_fifo.we.eq((out_fifo.level>0) & (inp_fifo.level<8)), # inp_fifo read transaction
         out_fifo.re.eq(inp_fifo.we), # out_fifo read ack (above delayed by one cycle)
 
         inp_fifo.din[0:fifo_width].eq(out_fifo.dout[0:fifo_width]), # outfifo feeds inpfifo
+        inp_fifo.replace.eq(0),
 
         ####################
         # INPFIFO->CPU
@@ -183,12 +189,14 @@ class FIFOTest(Module, AutoCSR):
 
         inp_fifo.re.eq( self.inp_ack.re ), # read ack from CPU
 
+        self.inp_datareg.status[0:fifo_width].eq(inp_fifo.dout[0:fifo_width]),
+        self.inp_dataavail.status.eq(inp_fifo.readable),
+        self.inp_level.status.eq(inp_fifo.level),
+        self.inp_writable.status.eq(inp_fifo.writable),
+        inp_fifo_raw.reset.eq(self.inp_reset.re),
     ]
 
     self.comb += [
-        self.inp_datareg.status[0:fifo_width].eq(inp_fifo.fifo.dout[0:fifo_width]),
-        self.inp_dataavail.status.eq(inp_fifo.readable),
-        self.inp_level.status.eq(inp_fifo.level),
     ]
 
 #######################################################
