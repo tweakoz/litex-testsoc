@@ -125,7 +125,7 @@ int main(int argc, const char** argv) {
 
   queue_t theq;
 
-  auto counter_queue = new ork::MpMcRingBuf<int,65536>();
+  auto _queue = new ork::MpMcRingBuf<uint32_t,65536>();
 
   ///////////////////////////////////////////////////
   auto thra = new std::thread([&]() {
@@ -201,78 +201,82 @@ int main(int argc, const char** argv) {
   });
   ///////////////////////////////////////////////////
   constexpr uint32_t itersperprint = 0xffff;
-  std::mutex _mutex;
   ///////////////////////////////////////////////////
-  auto thr_fifo_send = new std::thread([&]() {
+  auto thr_fifo = new std::thread([&]() {
     auto outfifo_data = registers + roffset(CSR_FIFOTEST_OUT_DATAREG_ADDR);
     auto outfifo_ready = registers + roffset(CSR_FIFOTEST_OUT_READY_ADDR);
     auto outfifo_level = registers + roffset(CSR_FIFOTEST_OUT_LEVEL_ADDR);
     auto outfifo_reset = registers + roffset(CSR_FIFOTEST_OUT_RESET_ADDR);
-
-    int counter = 0;
-
-    printf( "send thread started..\n");
-
-    csr_write8(outfifo_reset,1);
-    csr_write8(outfifo_reset,0);
-
-    while (0 == app_lifecycle_state.load()) {
-      _mutex.lock();
-      while(csr_read8(outfifo_ready)!=0) {
-        int val2send = counter++;
-        //counter_queue->push(val2send);
-        csr_write32(outfifo_data, val2send);
-        if( 0 == (counter&itersperprint) )
-          printf("outfifo counter<%d>\n", counter);
-      }
-      _mutex.unlock();
-      sched_yield();
-    }
-    printf( "send thread ending..\n");
-  });
-  usleep(1<<20);
-  ///////////////////////////////////////////////////
-  auto thr_fifo_recv = new std::thread([&]() {
+    auto outfifo_wrcnt = registers + roffset(CSR_FIFOTEST_OUT_WRITECOUNTER_ADDR);
     auto inpfifo_data = registers + roffset(CSR_FIFOTEST_INP_DATAREG_ADDR);
     auto inpfifo_avail = registers + roffset(CSR_FIFOTEST_INP_DATAAVAIL_ADDR);
     auto inpfifo_level = registers + roffset(CSR_FIFOTEST_INP_LEVEL_ADDR);
     auto inpfifo_ack = registers + roffset(CSR_FIFOTEST_INP_ACK_ADDR);
     auto inpfifo_reset = registers + roffset(CSR_FIFOTEST_INP_RESET_ADDR);
-    uint32_t counter = 0;
+    auto inpfifo_rdcnt = registers + roffset(CSR_FIFOTEST_INP_READCOUNTER_ADDR);
 
-    printf( "recv thread started..\n");
+    int counter = 0;
 
+    printf( "sendrecv thread started..\n");
+
+    csr_write8(outfifo_reset,1);
+    csr_write8(outfifo_reset,0);
     csr_write8(inpfifo_reset,1);
     csr_write8(inpfifo_reset,0);
 
+    uint32_t iterperprint = 0xffff;
+    constexpr int kthresh = 0x80;
+
+    ork::Timer t;
+    t.Start();
+    uint32_t read_base = 0;
+
     while (0 == app_lifecycle_state.load()) {
-      size_t max_per_iter = 16;
-      size_t count_this_iter = 0;
-      _mutex.lock();
-      while ((count_this_iter < max_per_iter) and csr_read8(inpfifo_avail)) {
-        uint32_t value = csr_read32(inpfifo_data);
-        int level = csr_read8(inpfifo_level);
-        csr_write8(inpfifo_ack, 1);
 
-        //int check_value = -1;
-        //printf( "popa\n");
-        //while(false==counter_queue->try_pop(check_value));
-        //printf( "popb\n");
-        //assert(check_value==int(value));
-        //printf("value<%d>\n", int(value));
+      int out_ready = csr_read8(outfifo_ready);
+      int inp_avail = csr_read8(inpfifo_avail);
+      int inp_level = csr_read8(inpfifo_level);
+      int out_level = csr_read8(outfifo_level);
 
-        if( 0 == (counter&itersperprint) ){
-            printf("value<%zu> count<%d> inpfifo-level<%d>\n", value, counter,
-                   level);
-        }
-        counter++;
-        count_this_iter++;
+      int x = rand()&0xff;
+
+      if ((x<kthresh) and out_ready) {
+        uint32_t x  = uint32_t(rand() & 0xffff);
+                 x |= uint32_t(rand() & 0xff) << 16;
+
+        csr_write32(outfifo_data,x);
+        _queue->push(x);
+
+        uint32_t wrcount = csr_read32(outfifo_wrcnt);
+        if(0==(wrcount%iterperprint))
+          printf("wrcount<%u> write <%08x> wrlev<%d> rdlev<%d>\n", wrcount, x, out_level, inp_level);
       }
-      _mutex.unlock();
-      sched_yield();
+      else if((x>=kthresh) and inp_avail) {
+        uint32_t r = csr_read32(inpfifo_data);
+        csr_write8(inpfifo_ack,1);
+        uint32_t chk = 0;
+        while(false==_queue->try_pop(chk));
+        if( r!=chk )
+          printf( "got<0x%08x> expected<0x%08x>\n", r,chk);
+        assert(r==chk);
+        uint32_t rdcount = csr_read32(inpfifo_rdcnt);
+
+        if((rdcount-read_base)>0x100000){
+          float persec = float(rdcount)/t.SecsSinceStart();
+          printf( "READRATE<%d reads/sec>\n",int(persec) );
+          t.Start();
+          read_base = rdcount;
+        }
+
+        //int inp_nfull = fifotest_inp_writable_read();
+        if(0==(rdcount%iterperprint))
+          printf("   rdcount<%u> read <%08x> wrlev<%d> rdlev<%d>..\n", rdcount, r,out_level,inp_level);
+
+      }
     }
-    printf( "recv thread ending..\n");
+    printf( "send thread ending..\n");
   });
+  usleep(1<<20);
   ///////////////////////////////////////////////////
   // threads
   ///////////////////////////////////////////////////
@@ -281,8 +285,7 @@ int main(int argc, const char** argv) {
   _threads.insert(thrc);
   _threads.insert(thrd);
 
-  _threads.insert(thr_fifo_send);
-  _threads.insert(thr_fifo_recv);
+  _threads.insert(thr_fifo);
   ///////////////////////////////////////////////////
   // comms(0mq) thread
   ///////////////////////////////////////////////////

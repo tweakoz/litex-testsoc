@@ -95,20 +95,20 @@ int main(int c, char** argv) {
 
     int x = rand()&0xff;
     int out_ready = fifotest_out_ready_read();
-    int out_level = fifotest_out_level_read();
     int inp_avail = fifotest_inp_dataavail_read();
     int inp_level = fifotest_inp_level_read();
-    int inp_nfull = fifotest_inp_writable_read();
+    int out_level = fifotest_out_level_read();
 
-    printf("        x<%02x> out_ready<%d> out_level<%d> inp_nfull<%d> inp_avail<%d> inp_level<%d>\n",x,out_ready,out_level,inp_nfull,inp_avail,inp_level);
+    //printf("        x<%02x> out_ready<%d> out_level<%d> inp_nfull<%d> inp_avail<%d> inp_level<%d>\n",x,out_ready,out_level,inp_nfull,inp_avail,inp_level);
 
     constexpr int kthresh = 0xc0;
 
     if ((x<kthresh) and out_ready) {
       uint32_t x = uint32_t(rand() & 0xffff);
       x |= uint32_t(rand() & 0xff) << 16;
-      //if(0==(writecount%iterperprint))
-        printf("writecount<%d> write <%08x> lev<%d>\n", writecount, x, out_level);
+      int wrcount = fifotest_out_writecounter_read();
+      if(0==(wrcount%iterperprint))
+        printf("writecount<%d> write <%08x> wrlev<%d> rdlev<%d>\n", writecount, x, out_level, inp_level);
       fifotest_out_datareg_write(x);
       _queue->enqueue(x);
       writecount++;
@@ -119,8 +119,10 @@ int main(int c, char** argv) {
       while(false==_queue->try_dequeue(chk));
       if(r!=chk)
         printf("   ERROR r<0x%08x> chk<0x%08x>\n", r,chk);
-      //if(0==(readcount%iterperprint))
-        printf("   readcount<%d> read <%08x> lev<%d>..\n", readcount, r,inp_level);
+      int rdcount = fifotest_inp_readcounter_read();
+      //int inp_nfull = fifotest_inp_writable_read();
+      if(0==(rdcount%iterperprint))
+        printf("   readcount<%d> read <%08x> wrlev<%d> rdlev<%d>..\n", readcount, r,out_level,inp_level);
       fifotest_inp_ack_write(1);
       readcount++;
     }
