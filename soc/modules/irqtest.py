@@ -15,14 +15,12 @@ class Pulsor(Module):
         self.sync += [
             prvcnt.eq(counter),
             counter.eq(counter + 1),
-        ]
-        self.comb += [
+            output.eq(counter[10]!=prvcnt[10])
             # should trigger when:
             # counter=0x800000, prvcnt==0x7fffff
             # and
             # counter=0x000000, prvcnt==0xffffff
             # @ 100mhz - should fire about 12 times a second..
-            output.eq(counter[23]!=prvcnt[23])
         ]
 
 ###################################
@@ -42,6 +40,7 @@ class IRQTest(Module, AutoCSR):
 
     self.submodules.ev = EventManager()
     self.ev.pulsor = EventSourcePulse() # one shot
+    self.ev.finalize()
 
     ####################
 

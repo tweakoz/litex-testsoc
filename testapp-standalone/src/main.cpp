@@ -27,7 +27,15 @@ extern "C" void isr(void) {
 
   irqs = irq_pending() & irq_getmask();
 
-  if (irqs & (1 << UART_INTERRUPT)) uart_isr();
+  if (irqs & (1 << UART_INTERRUPT))
+    uart_isr();
+
+  if(irqs & (1 << PULSOR_INTERRUPT)){
+      int stat = irqtest_ev_pending_read();
+      //printf("PULSOR IRQ stat<%d>\n",stat);
+      irqtest_ev_pending_write(0);
+      irqtest_ev_enable_write(1);
+  }
   else
     printf("other irq<%08x>\n", irqs);
 }
@@ -53,8 +61,11 @@ void* allocate(size_t amount){
 int main(int c, char** argv) {
   int rval = 0;
   irq_setmask(0);
-  irq_setie(1);
   uart_init();
+  irq_setmask(irq_getmask()|(1<<PULSOR_INTERRUPT));
+  irqtest_ev_pending_write(0);
+  irqtest_ev_enable_write(1);
+  irq_setie(1);
 
   printf("what up yo..\n");
   uart_sync();
