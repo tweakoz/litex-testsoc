@@ -145,7 +145,8 @@ config_defaults = {
     "DEVHOSTIP": "192.168.1.2",
     "NFSHOSTIP": "192.168.1.2",
     "TFTPPORT": "6069",
-    "DEVTTY": "/dev/ttyUSBx"
+    "DEVTTY": "/dev/ttyUSBx",
+    "FPGAPLAT": "arty"
 }
 
 soc_config_path = stage_dir/"soc-config.json"
@@ -172,7 +173,6 @@ ork.env.prepend("PATH",project_root/"testapp-standalone"/"bin")
 
 ork.env.set("SOC_DIR",soc_dir)
 ork.env.set("OUTPUT_DIR",builddir/"soc")
-ork.env.set("FPGAPLAT","arty")
 ork.env.set("SOC_BUILD_DIR",builddir/"soc")
 ork.env.set("BUILDROOT_DIR",buildroot_dir)
 
