@@ -27,7 +27,7 @@ this_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 project_root = (this_dir/"..").resolve()
 stage_dir = (project_root/".stage").resolve()
 
-if hasattr(args,"stagedir"):
+if hasattr(args,"stagedir") and args.stagedir!=None:
     stage_dir = Path(args.stagedir).resolve()
 obt_dir = (project_root/"ork.build").resolve()
 soc_dir = (project_root/"soc").resolve()

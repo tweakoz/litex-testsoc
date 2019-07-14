@@ -52,7 +52,7 @@ def exec(s):
 tftpdir = Path(os.environ["PROJECT_ROOT"])/"tftp_root"/os.environ["FPGAPLAT"]
 
 exec("dtc -O dtb -o %s/rv32.dtb ${PROJECT_ROOT}/buildroot-ext/board/testsoc/testsoc-arty.dts"%(tftpdir))
-exec("dtc -O dts -o %s/rv32.dts %s/rv32.dtb"%tftpdir)
+exec("dtc -O dts -o %s/rv32.dts %s/rv32.dtb"%(tftpdir,tftpdir))
 exec("source-highlight --out-format=esc -o STDOUT -i %s/rv32.dts -s sh"%tftpdir)
 exec("source-highlight --out-format=esc -o STDOUT -i ${SOC_BUILD_DIR}/${FPGAPLAT}/mysoc_csr.json -s json")
 #exec("build.manifest.py")
