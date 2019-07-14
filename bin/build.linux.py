@@ -17,6 +17,8 @@ socbuild = Path(os.environ["SOC_BUILD_DIR"])
 bldroot_ext_src = prjroot/"buildroot-ext"
 bldroot_ext_dst = socbuild/"buildroot-ext"
 
+run(["mkdir","-p",bldroot_ext_dst/"configs"])
+
 ##############
 # first a blind copy
 ##############

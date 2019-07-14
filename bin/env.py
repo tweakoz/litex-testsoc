@@ -27,8 +27,8 @@ this_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 project_root = (this_dir/"..").resolve()
 stage_dir = (project_root/".stage").resolve()
 
-if args["stagedir"]!=None:
-    stage_dir = Path(args["stagedir"]).resolve()
+if hasattr(args,"stagedir"):
+    stage_dir = Path(args.stagedir).resolve()
 obt_dir = (project_root/"ork.build").resolve()
 soc_dir = (project_root/"soc").resolve()
 obt_bin_dir = (obt_dir/"bin").resolve()
@@ -123,6 +123,7 @@ if not os.path.exists(buildroot_dir):
 
 os.chdir(builddir)
 
+
 if not os.path.exists(rvtoolchain_ix_dir):
     run([ "tar",
           "-xvf",
@@ -182,15 +183,23 @@ for item in my_config:
 # install litex
 ###############################
 
-try:
-    import litex
-except:
+if not os.path.exists(builddir/"litex_setup.py"):
     os.chdir(builddir)
     os.system("wget https://raw.githubusercontent.com/tweakoz/litex/tweakoz/diagnose_csr/litex_setup.py")
     os.system("python3 ./litex_setup.py init install")
     os.system("python3 ./litex_setup.py update")
 
 ork.env.set("LITEX_ROOT",builddir/"litex"/"litex")
+
+
+#################################
+#todo - generate this script over stage/.launch_env
+#################################
+
+if new_venv:
+    pass
+    #!/usr/bin/env sh
+    #(project_root/"bin"/"env.py").resolve() --stagedir stage_dir.resolve()
 
 ###############################
 # lets always boot up the env in project_root

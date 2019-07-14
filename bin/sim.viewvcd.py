@@ -6,6 +6,7 @@ import ork.path
 builds = ork.path.prefix()/"builds"
 simdir = builds/"soc"/"arty"/"simulation"
 vcd = simdir/"gateware"/"dut.vcd"
+gtkw = simdir/"gateware"/"dut.gtkw"
 
 run(["gtkwave",
-     vcd])
+     vcd,gtkw])
