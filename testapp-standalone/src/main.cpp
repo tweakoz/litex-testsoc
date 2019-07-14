@@ -70,7 +70,7 @@ int main(int c, char** argv) {
   printf("what up yo..\n");
   uart_sync();
 
-  constexpr uint64_t clock_rate = SYSTEM_CLOCK_FREQUENCY;
+  constexpr uint64_t clock_rate = CONFIG_CLOCK_FREQUENCY;
 
   rgbledA_b_enable_write(1);
   rgbledA_b_period_write(0xffff);

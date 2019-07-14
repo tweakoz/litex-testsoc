@@ -133,30 +133,32 @@ class SimCore(SoCCore):
       print("##################################")
       print("# Embedding Firmware")
       print("##################################")
-      with open(str(prjroot/"testapp-standalone"/".build"/"main-sim.bin"), "rb") as boot_file:
+      try:
+       with open(str(prjroot/"testapp-standalone"/".build"/"main-sim.bin"), "rb") as boot_file:
         while True:
             w = boot_file.read(4)
             if not w:
                 break
             FIRMWARE.append(struct.unpack("<I", w)[0]) # Little Endian
             #FIRMWARE.append(struct.unpack(">I", w)[0]) # Big Endian
-
-        print(FIRMWARE)
-        _platform = Platform()
-        super(SimCore,self).__init__( platform=_platform,
-                                      with_uart=False,
-                                      clk_freq=int(clock_frq),
-                                      integrated_rom_size=0x8000,
-                                      integrated_sram_size=0x8000,
-                                      integrated_main_ram_size=0x10000000, # 256MB
-                                      integrated_rom_init=FIRMWARE,
-                                      **kwargs )
-        self.submodules.crg = CRG(_platform.request("sys_clk"))
-        # serial
-        self.submodules.uart_phy = uart.RS232PHYModel(_platform.request("serial"))
-        self.submodules.uart = uart.UART(self.uart_phy)
-        self.add_csr("uart", allow_user_defined=True)
-        self.add_interrupt("uart", allow_user_defined=True)
+      except:
+       pass
+      print(FIRMWARE)
+      _platform = Platform()
+      super(SimCore,self).__init__( platform=_platform,
+                                    with_uart=False,
+                                    clk_freq=int(clock_frq),
+                                    integrated_rom_size=0x8000,
+                                    integrated_sram_size=0x8000,
+                                    integrated_main_ram_size=0x10000000, # 256MB
+                                    integrated_rom_init=FIRMWARE,
+                                    **kwargs )
+      self.submodules.crg = CRG(_platform.request("sys_clk"))
+      # serial
+      self.submodules.uart_phy = uart.RS232PHYModel(_platform.request("serial"))
+      self.submodules.uart = uart.UART(self.uart_phy)
+      self.add_csr("uart", allow_user_defined=True)
+      self.add_interrupt("uart", allow_user_defined=True)
 
 
 ###################################

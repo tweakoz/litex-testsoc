@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, sys
+import os, sys, argparse
 from pathlib import Path
 
 ###############################
@@ -17,9 +17,18 @@ buildroot_rev = "1db7890e0a"
 
 ###############################
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--stagedir", help="staging dir (default: <PRJROOT>/.stage)",type=str)
+args = parser.parse_args()
+
+###############################
+
 this_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 project_root = (this_dir/"..").resolve()
 stage_dir = (project_root/".stage").resolve()
+
+if args["stagedir"]!=None:
+    stage_dir = Path(args["stagedir"]).resolve()
 obt_dir = (project_root/"ork.build").resolve()
 soc_dir = (project_root/"soc").resolve()
 obt_bin_dir = (obt_dir/"bin").resolve()
