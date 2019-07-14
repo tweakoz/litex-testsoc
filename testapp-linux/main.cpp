@@ -17,33 +17,60 @@ void setled(regaddr_t baseaddr, bool enable, uint32_t period,
 
 ////////////////////////////////////////////////////////////////
 
-void setledbri(regaddr_t baseaddr, uint8_t bri) {
-  setled(baseaddr, true, 1 << 12, 255 - bri);
+void setledbri(regaddr_t baseaddr, float bri) {
+  setled(baseaddr, true, 1 << 28, 255.0f*bri);
 }
 
 ////////////////////////////////////////////////////////////////
 
 struct rgbldriver {
-  rgbldriver(regaddr_t addr) : _baseaddr(addr), _phi(0.0f) {}
+  rgbldriver(regaddr_t addr)
+    : _baseaddr(addr)
+    , _updtim(1.0f)
+    {
+        _timer.Start();
+    }
 
-  void update(float frq, fvec3 wgt) {
-    float val = 0.5f + sinf(_phi) * 0.5f;
-
-    // printf( "val<%f>\n", val );
-
-    int ir = int(val * 255.0f * wgt.x);
-    int ig = int(val * 255.0f * wgt.y);
-    int ib = int(val * 255.0f * wgt.z);
-
-    setledbri(_baseaddr + 0x00, ir & 0xff);
-    setledbri(_baseaddr + 0x24, ig & 0xff);
-    setledbri(_baseaddr + 0x48, ib & 0xff);
-
-    _phi += frq;
+  void newsettings(){
+      _axis.x = float((rand()&0xffff)-0x8000)/float(0x8000);
+      _axis.y = float((rand()&0xffff)-0x8000)/float(0x8000);
+      _axis.z = float((rand()&0xffff)-0x8000)/float(0x8000);
+      _axis = _axis.Normal();
+      _angvel = float((rand()&0xffff)-0x8000)/float(0x8000)/20.0f;
+      _qincr.FromAxisAngle(fvec4(_axis,_angvel));
+      _updtim = 0.1f+3.0f*float((rand()&0xffff)-0x8000)/float(0x8000);
+      _timer.Start();
   }
 
-  float _phi;
+  void update(float frq, fvec3 wgt) {
+
+    if( _timer.SecsSinceStart()>_updtim){
+        newsettings();
+
+    }
+    auto m = _qaccum.ToMatrix();
+    fvec3 nx,ny,nz;
+    m.NormalVectorsOut(nx,ny,nz);
+
+    float fr = float((nx.x+1.0f) * 127.5f*0.1f);
+    float fg = float(0.0f);//(nx.y+1.0f) * 127.5f*0.1f);
+    float fb = float(0.0f);//(nx.z+1.0f) * 127.5f*0.1f);
+
+    setledbri(_baseaddr + 0x00, fr);
+    setledbri(_baseaddr + 0x24, fg);
+    setledbri(_baseaddr + 0x48, fb);
+
+    _qaccum = _qaccum.Multiply(_qincr);
+
+  }
+
+  float _updtim;
   regaddr_t _baseaddr;
+  ork::Timer _timer;
+  fquat _qincr;
+  fquat _qaccum;
+  fvec3 _axis;
+  float _angvel;
 };
 
 ////////////////////////////////////////////////////////////////
@@ -218,7 +245,7 @@ int main(int argc, const char** argv) {
     auto outfifo_level = registers + roffset(CSR_FIFOTEST_OUT_LEVEL_ADDR);
     auto outfifo_wrcnt = registers + roffset(CSR_FIFOTEST_OUT_WRITECOUNTER_ADDR);
 
-    int counter = 0;
+    uint32_t counter = 0;
 
     printf( "send thread started..\n");
 
@@ -230,8 +257,9 @@ int main(int argc, const char** argv) {
     while (0 == app_lifecycle_state.load()) {
 
       while (csr_read8(outfifo_ready)) {
-        uint32_t x  = uint32_t(rand() & 0xffff);
-                 x |= uint32_t(rand() & 0xff) << 16;
+        //uint32_t x  = uint32_t(rand() & 0xffff);
+        //         x |= uint32_t(rand() & 0xff) << 16;
+        uint32_t x = counter++;
 
         csr_write32(outfifo_data,x);
         wrcount++;
@@ -345,8 +373,16 @@ int main(int argc, const char** argv) {
   });*/
   ///////////////////////////////////////////////////
   printf("entering runloop\n");
+  csr_write8(registers+roffset(CSR_PMODA_IO1_ENABLE_ADDR),1);
+  csr_write32(registers+roffset(CSR_PMODA_IO1_PERIOD_ADDR),255);
+  float phase = 0.0f;
+  ork::Timer t;
+  t.Start();
   while (app_lifecycle_state.load() == 0) {
-    usleep(1e5);
+    float phase = t.SecsSinceStart()*2.0*PI;
+    float val = 0.5f+sinf(phase*30)*0.5f;
+    csr_write32(registers+roffset(CSR_PMODA_IO1_WIDTH_ADDR),int(val*255.0f));
+    //usleep(1e4);
   }
   printf("exited runloop\n");
   ///////////////////////////////////////////////////

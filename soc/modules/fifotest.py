@@ -11,7 +11,7 @@ class FIFOTest(Module, AutoCSR):
   def __init__(self, soc):
 
     fifo_width = 32 # 32 bits wide
-    fifo_depth = 16 # 16 items in fifo
+    fifo_depth = 32 # 16 items in fifo
 
     #####################################################
     # out fifo (CPU->FIFO)
@@ -42,8 +42,8 @@ class FIFOTest(Module, AutoCSR):
         self.out_writeoccured.eq(out_fifo.we),
 
         If( self.out_reset.re,
-            out_fifo.level.eq(0),
-            self.out_datareg.storage.eq(0) ),
+            out_fifo.level.eq(0)),
+        #    self.out_datareg.storage.eq(0) ),
 
         If( self.out_reset.re,
             self.out_writecounter.status.eq(0) ).

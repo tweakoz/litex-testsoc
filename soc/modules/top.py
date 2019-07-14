@@ -34,7 +34,7 @@ class PMODGPOUT(Module, AutoCSR):
   def __init__(self, soc, ioname):
     super(PMODGPOUT, self).__init__()
     ios = soc.platform.request(ioname, 0)
-    self.submodules.io1 = gpio.GPIOOut(ios.io1)
+    self.submodules.io1 = pwm.PWM(ios.io1, invert=False)
     self.submodules.io2 = gpio.GPIOOut(ios.io2)
     self.submodules.io3 = gpio.GPIOOut(ios.io3)
     self.submodules.io4 = gpio.GPIOOut(ios.io4)
