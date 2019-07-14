@@ -30,7 +30,7 @@ clock_frq = 3e6
 
 this_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 prjroot = Path(os.environ["PROJECT_ROOT"])
-output_dir = Path(os.environ["SOC_BUILD_DIR"])/"simulation"
+output_dir = Path(os.environ["SOC_BUILD_DIR"])/os.environ["FPGAPLAT"]/"simulation"
 sys.path.append(str(prjroot/"soc"/"modules"))
 import top
 

@@ -14,10 +14,10 @@ os.environ["SOC_TFTP_SERVER_IP"] = remoteip
 os.environ["SOC_TFTP_SERVER_PORT"] = port
 
 prjroot = Path(os.environ["PROJECT_ROOT"])
-socbldir = Path(os.environ["SOC_BUILD_DIR"])
+socbldir = Path(os.environ["SOC_BUILD_DIR"])/os.environ["FPGAPLAT"]
 os.chdir(prjroot/"litex-chainloader")
 run(["make","clean"])
 run(["make"])
 run(["cp",
      socbldir/"software"/"chainloader"/"chainloader.bin",
-     prjroot/"tftp_root"/"arty"/"chainloader.bin" ])
+     prjroot/"tftp_root"/os.environ["FPGAPLAT"]/"chainloader.bin" ])

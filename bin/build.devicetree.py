@@ -3,7 +3,7 @@
 import os, csv, json
 from pathlib import Path
 
-socdir = Path(os.environ["SOC_BUILD_DIR"])
+socdir = Path(os.environ["SOC_BUILD_DIR"])/os.environ["FPGAPLAT"]
 
 ################################################################################
 
@@ -49,8 +49,10 @@ def exec(s):
 
 ################################################################################
 
-exec("dtc -O dtb -o ${PROJECT_ROOT}/tftp_root/arty/rv32.dtb ${PROJECT_ROOT}/buildroot-ext/board/testsoc/testsoc-arty.dts")
-exec("dtc -O dts -o ${PROJECT_ROOT}/tftp_root/arty/rv32.dts ${PROJECT_ROOT}/tftp_root/arty/rv32.dtb")
-exec("source-highlight --out-format=esc -o STDOUT -i ${PROJECT_ROOT}/tftp_root/arty/rv32.dts -s sh")
-exec("source-highlight --out-format=esc -o STDOUT -i ${SOC_BUILD_DIR}/mysoc_csr.json -s json")
+tftpdir = Path(os.environ["PROJECT_ROOT"])/"tftp_root"/os.environ["FPGAPLAT"]
+
+exec("dtc -O dtb -o %s/rv32.dtb ${PROJECT_ROOT}/buildroot-ext/board/testsoc/testsoc-arty.dts"%(tftpdir))
+exec("dtc -O dts -o %s/rv32.dts %s/rv32.dtb"%tftpdir)
+exec("source-highlight --out-format=esc -o STDOUT -i %s/rv32.dts -s sh"%tftpdir)
+exec("source-highlight --out-format=esc -o STDOUT -i ${SOC_BUILD_DIR}/${FPGAPLAT}/mysoc_csr.json -s json")
 #exec("build.manifest.py")

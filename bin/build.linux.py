@@ -57,7 +57,7 @@ run(["make","testsoc_defconfig"])
 run(["make"])
 
 copy_src = bldroot/"output"/"images"
-copy_dst = prjroot/"tftp_root"/"arty"
+copy_dst = prjroot/"tftp_root"/os.environ["FPGAPLAT"]
 
 cpio_src = copy_src/"rootfs.cpio"
 cpio_dst = copy_dst/"rootfs.cpio"

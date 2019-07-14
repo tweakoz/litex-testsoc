@@ -1,4 +1,4 @@
-export PLATINC=${SOC_BUILD_DIR}/simulation/software/include/generated/variables.mak
+export PLATINC=${SOC_BUILD_DIR}/${FPGAPLAT}/simulation/software/include/generated/variables.mak
 export BASE=${PROJECT_ROOT}/testapp-standalone
 export LINKERF=${BASE}/src/link_as_rom.d
 export BUILDDIR=${BASE}/.build

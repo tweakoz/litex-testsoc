@@ -21,8 +21,9 @@ if args["tty"] != None:
 
 print(tty)
 
-soc_dir = Path(os.environ["SOC_BUILD_DIR"])
+soc_dir = Path(os.environ["SOC_BUILD_DIR"])/os.environ["FPGAPLAT"]
 prjroot = Path(os.environ["PROJECT_ROOT"])
+sys.path.append(str(prjroot/"soc"/"modules"))
 
 chainloader = soc_dir/"software"/"chainloader"/"chainloader.bin"
 standalone = prjroot/"testapp-standalone"/".build"/"main-device.bin"
@@ -31,9 +32,13 @@ assert(os.path.exists(tty))
 
 run(["build.manifest.py"])
 
+import socplat
+print(dir(socplat))
+p = socplat.get()
+
 run([ "djtgcfg",
       "prog",
-      "-d", "Arty",
+      "-d", p.djtgname,
       "-i", "0",
       "-f", soc_dir/"gateware"/"top.bit" ])
 

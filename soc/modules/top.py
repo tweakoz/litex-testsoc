@@ -100,10 +100,11 @@ def SocBase(BaseClass,addargs=None):
 
 #######################################################
 
-def GenSoc( BaseClass,
-            PlatformExtender):
+def GenSoc( Platform ):
 
-    soc_base = SocBase(BaseClass)
+    baseclass = Platform.baseclass
+
+    soc_base = SocBase(baseclass)
     #######################################################
     soc = soc_base(
         cpu_type="vexriscv",
@@ -114,7 +115,7 @@ def GenSoc( BaseClass,
         uart_baudrate=115200,
     )
     ######################################################
-    PlatformExtender(soc)
+    Platform.extend(soc)
     ######################################################
     # UART/Wishbone debug bridge (for VexRiscV debug port)
     ######################################################
@@ -150,15 +151,16 @@ def GenSoc( BaseClass,
     # RGB Leds
     ###################################
 
-    soc.submodules.rgbledA = RGBLed(soc,"rgb_led",0)
-    soc.submodules.rgbledB = RGBLed(soc,"rgb_led",1)
-    soc.submodules.rgbledC = RGBLed(soc,"rgb_led",2)
-    soc.submodules.rgbledD = RGBLed(soc,"rgb_led",3)
+    if Platform.enable_rgbleds:
+      soc.submodules.rgbledA = RGBLed(soc,"rgb_led",0)
+      soc.submodules.rgbledB = RGBLed(soc,"rgb_led",1)
+      soc.submodules.rgbledC = RGBLed(soc,"rgb_led",2)
+      soc.submodules.rgbledD = RGBLed(soc,"rgb_led",3)
 
-    soc.add_csr("rgbledA")
-    soc.add_csr("rgbledB")
-    soc.add_csr("rgbledC")
-    soc.add_csr("rgbledD")
+      soc.add_csr("rgbledA")
+      soc.add_csr("rgbledB")
+      soc.add_csr("rgbledC")
+      soc.add_csr("rgbledD")
 
     ###################################
     # GPIO's
