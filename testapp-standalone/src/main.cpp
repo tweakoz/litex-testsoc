@@ -69,6 +69,18 @@ int main(int c, char** argv) {
 
   printf("what up yo..\n");
   uart_sync();
+  printf("clear ext_sram: ");
+  uart_sync();
+  auto ext_sram_base = (char*) 0x08000000;
+  char ch;
+  for(size_t i=0; i<0x800; i++){
+      if(i&1)
+        ext_sram_base[i]=i&0xff;
+      else
+        ch = ext_sram_base[i];
+  }
+  printf("done..");
+  uart_sync();
 
   constexpr uint64_t clock_rate = CONFIG_CLOCK_FREQUENCY;
 

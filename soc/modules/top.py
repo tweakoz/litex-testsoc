@@ -82,7 +82,7 @@ board_name="testsoc"
 #######################################################
 
 def SocBase(BaseClass,addargs=None):
-    class _impl(BaseClass):
+    class _impx(BaseClass):
         BaseClass.mem_map["rom"] = 0x00000000
         BaseClass.mem_map["sram"] = 0x10000000
         BaseClass.mem_map["emulator_ram"] = 0x20000000
@@ -94,9 +94,9 @@ def SocBase(BaseClass,addargs=None):
         BaseClass.interrupt_map["pulsor"] = 4 # dynamically assign?
 
         def __init__(self,**kwargs):
-            super(_impl,self).__init__( **kwargs )
+            super(_impx,self).__init__( **kwargs )
 
-    return _impl
+    return _impx
 
 #######################################################
 
@@ -122,11 +122,11 @@ def GenSoc( Platform ):
 
     print(soc.clk_freq)
 
-    soc.submodules.bridge  = uart.UARTWishboneBridge( soc.platform.request("dbgserial"),
-                                                      soc.clk_freq,
-                                                      baudrate=3000000)
+    #soc.submodules.bridge  = uart.UARTWishboneBridge( soc.platform.request("dbgserial"),
+    #                                                  soc.clk_freq,
+    #                                                  baudrate=3000000)
 
-    soc.add_wb_master(soc.bridge.wishbone)
+    #soc.add_wb_master(soc.bridge.wishbone)
 
     #################################################
     # disabled - because SOC is DOA when enabled
@@ -142,34 +142,51 @@ def GenSoc( Platform ):
     # VexRiscV Machine Mode Emulator SRAM
     ###################################
 
-    soc.submodules.emulator_ram = wishbone.SRAM(0x4000)
+    soc.submodules.emulator_rax = wishbone.SRAM(0x4000)
     soc.register_mem( "emulator_ram",
                       soc.mem_map["emulator_ram"],
-                      soc.emulator_ram.bus, 0x4000)
+                      soc.emulator_rax.bus, 0x4000)
 
     ###################################
     # RGB Leds
     ###################################
 
-    if Platform.enable_rgbleds:
+    if Platform.hasFeature("rgbledA"):
       soc.submodules.rgbledA = RGBLed(soc,"rgb_led",0)
-      soc.submodules.rgbledB = RGBLed(soc,"rgb_led",1)
-      soc.submodules.rgbledC = RGBLed(soc,"rgb_led",2)
-      soc.submodules.rgbledD = RGBLed(soc,"rgb_led",3)
-
       soc.add_csr("rgbledA")
+
+    if Platform.hasFeature("rgbledB"):
+      soc.submodules.rgbledA = RGBLed(soc,"rgb_led",1)
       soc.add_csr("rgbledB")
+
+    if Platform.hasFeature("rgbledC"):
+      soc.submodules.rgbledA = RGBLed(soc,"rgb_led",2)
       soc.add_csr("rgbledC")
+
+    if Platform.hasFeature("rgbledD"):
+      soc.submodules.rgbledA = RGBLed(soc,"rgb_led",3)
       soc.add_csr("rgbledD")
 
     ###################################
     # GPIO's
     ###################################
 
-    soc.submodules.pmodA = PMODGPOUT(soc,"pmodA")
-    soc.submodules.pmodC = PMODGPINP(soc,"pmodC")
-    soc.add_csr("pmodA")
-    soc.add_csr("pmodC")
+    if Platform.hasFeature("pmodA"):
+        soc.submodules.pmodA = PMODGPOUT(soc,"pmodA")
+        soc.add_csr("pmodA")
+    if Platform.hasFeature("pmodC"):
+        soc.submodules.pmodC = PMODGPINP(soc,"pmodC")
+        soc.add_csr("pmodC")
+
+    ###################################
+
+    if Platform.hasFeature("ethernet"):
+        soc_ip = os.environ["SOCIPADDR"]
+        tftp_ip = os.environ["DEVHOSTIP"]
+
+        configureEthernet( soc,
+                           local_ip=soc_ip,
+                           remote_ip=tftp_ip )
 
     ###################################
     # IRQ test
@@ -187,12 +204,6 @@ def GenSoc( Platform ):
 
     ###################################
 
-    soc_ip = os.environ["SOCIPADDR"]
-    tftp_ip = os.environ["DEVHOSTIP"]
-
-    configureEthernet( soc,
-                       local_ip=soc_ip,
-                       remote_ip=tftp_ip )
     configureBoot(soc)
 
     return soc

@@ -71,5 +71,10 @@ class platform:
     self.enable_rgbleds = False
     self.djtgname = "Arty"
 
+  def hasFeature(self,name):
+      return name in ["rgbledA","rgbledB","rgbledC","rgbledD",
+                      "pmodA","pmodC",
+                      "ethernet"]
+
   def gen(self):
       return top.GenSoc( self )

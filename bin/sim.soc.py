@@ -32,7 +32,8 @@ this_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 prjroot = Path(os.environ["PROJECT_ROOT"])
 output_dir = Path(os.environ["SOC_BUILD_DIR"])/os.environ["FPGAPLAT"]/"simulation"
 sys.path.append(str(prjroot/"soc"/"modules"))
-import top
+import top, issisram
+from issisram import IssiSRAM
 
 ###################################
 
@@ -99,7 +100,14 @@ _io = [
        Subsignal("io6",  SimPins(1)), # p8
        Subsignal("io7",  SimPins(1)), # p9
        Subsignal("io8",  SimPins(1)), # p10
-    )
+    ),
+    ("issisram", 0,
+       Subsignal("addr", SimPins(19)),
+       Subsignal( "dq", SimPins(8)),
+       Subsignal("oe_n", SimPins(1)),
+       Subsignal("we_n", SimPins(1)),
+       Subsignal("ce_n", SimPins(1)),
+    ),
 ]
 
 ###################################
@@ -160,18 +168,45 @@ class SimCore(SoCCore):
       self.add_csr("uart", allow_user_defined=True)
       self.add_interrupt("uart", allow_user_defined=True)
 
+      _cmoda7sramsize = int(0x80000)
+      _srampins = self.platform.request("issisram")
+      self.submodules.issisram = IssiSRAM( _srampins.addr,
+                                           _srampins.dq,
+                                           _srampins.ce_n,
+                                           _srampins.oe_n,
+                                           _srampins.we_n )
+      self.register_mem("ext_sram",
+                        0x08000000,
+                        self.issisram.srambus,
+                        _cmoda7sramsize)
 
 ###################################
 
-plat = Platform()
-the_top = top.GenSoc(SimCore,extensions)
+class MySimPlatform:
+  def __init__(self):
+    self.name = "simul"
+    self.baseclass = SimCore
+    self.extend = extensions
+    self.features = {"rgbledA"}
+
+  def hasFeature(self,name):
+      return name in ["rgbledA"]
+
+  def gen(self):
+      soc = top.GenSoc( self )
+
+      return soc
+
+###################################
+
+p = MySimPlatform()
 
 ###################################
 
 sim_config = SimConfig(default_clk="sys_clk")
 sim_config.add_module("serial2console", "serial")
 
-builder = Builder( the_top,
+builder = Builder( p.gen(),
                    output_dir=output_dir,
                    csr_csv=str(output_dir/"mysoc_csr.csv"))
 

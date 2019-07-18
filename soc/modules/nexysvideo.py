@@ -70,8 +70,11 @@ class platform:
     self.name = "nexysvideo"
     self.baseclass = litex.boards.targets.nexys_video.EthernetSoC
     self.extend = extensions
-    self.enable_rgbleds = False
     self.djtgname = "NexysVideo"
+
+  def hasFeature(self,name):
+      return name in ["pmodA","pmodC",
+                      "ethernet"]
 
   def gen(self):
       return top.GenSoc( self )

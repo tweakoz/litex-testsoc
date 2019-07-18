@@ -1,5 +1,5 @@
 #
-import arty, nexysvideo, os
+import arty, nexysvideo, cmoda7, os
 
 FPGAPLAT="arty"
 if "FPGAPLAT" in os.environ:
@@ -7,7 +7,8 @@ if "FPGAPLAT" in os.environ:
 
 plats = {
     "arty": arty.platform(),
-    "nexysvideo": nexysvideo.platform()
+    "nexysvideo": nexysvideo.platform(),
+    "cmoda7": cmoda7.platform()
 }
 def get():
     return plats[FPGAPLAT]
