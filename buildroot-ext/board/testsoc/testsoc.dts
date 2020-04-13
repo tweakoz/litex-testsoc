@@ -6,16 +6,16 @@
 
 	chosen {
 		bootargs = "mem=128M@0x40000000 noinitrd console=hvc0 root=/dev/ram0 init=/sbin/init swiotlb=32";
-		linux,initrd-start = <0xC1000000>;
-		linux,initrd-end   = <0xC2000000>; // max 16MB ramdisk image
+		linux,initrd-start = <0x41000000>;
+		linux,initrd-end   = <0x42000000>; // max 16MB ramdisk image
 	};
 
 	cpus {
 		timebase-frequency = <50000000>;
 	};
 
-	memory@c0000000 {
+	memory@40000000 {
 		device_type = "memory";
-		reg = <0x0 0xc0000000 0x1 0x02000000>;
+		reg = <0x0 0x40000000 0x1 0x02000000>;
 	};
 };

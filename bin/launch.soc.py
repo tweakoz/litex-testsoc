@@ -7,6 +7,7 @@ from ork.command import run
 parser = argparse.ArgumentParser(description='testsoc launcher')
 parser.add_argument('--tty', metavar="tty", default=None, help='arty programming tty' )
 parser.add_argument('--standalone', action="store_true", default=None, help='arty programming tty' )
+parser.add_argument('--bios', action="store_true", default=None, help='just enter bios' )
 
 args = vars(parser.parse_args())
 
@@ -42,20 +43,25 @@ run([ "djtgcfg",
       "-i", "0",
       "-f", soc_dir/"gateware"/"top.bit" ])
 
-if args["standalone"]:
+if args["bios"]:
+  run([ "litex_term",
+      "--speed", "460800",
+      tty])
+
+elif args["standalone"]:
   assert(os.path.exists(standalone))
   run([ "litex_term",
-      "--speed", "115200",
+      "--speed", "460800",
       tty,
       "--kernel",standalone,
-      "--kernel-adr","c0000000"])
+      "--kernel-adr","40000000"])
 
 else:
   assert(os.path.exists(chainloader))
   run([ "litex_term",
-      "--speed", "115200",
+      "--speed", "460800",
       tty,
       "--kernel",chainloader,
-      "--kernel-adr","cff00000"])
+      "--kernel-adr","4ff00000"])
 
 run(["stty","sane"])

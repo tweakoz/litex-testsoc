@@ -83,7 +83,6 @@ board_name="testsoc"
 
 def SocBase(BaseClass,addargs=None):
     class _impx(BaseClass):
-        BaseClass.mem_map["rom"] = 0x00000000
         BaseClass.mem_map["sram"] = 0x18000000
         BaseClass.mem_map["emulator_ram"] = 0x20000000
         BaseClass.mem_map["ethmac"] = 0x80000000
@@ -109,11 +108,12 @@ def GenSoc( Platform ):
     soc = soc_base(
         cpu_type="vexriscv",
         cpu_variant="linux+debug",
-        cpu_reset_address = 0x00000000,
+        integrated_rom_size = 0x8000,
+        #cpu_reset_address = 0x00000000,
         ident="TestSoc",
         ident_version="0.1",
         csr_address_width=16,
-        uart_baudrate=115200,
+        uart_baudrate=460800,
         with_ethernet=use_ethernet
     )
     ######################################################
@@ -145,9 +145,6 @@ def GenSoc( Platform ):
     ###################################
 
     soc.submodules.emulator_rax = wishbone.SRAM(0x4000)
-    soc.register_mem( "rom",
-                      soc.mem_map["rom"],
-                      soc.emulator_rax.bus, 0x8000)
     soc.register_mem( "emulator_ram",
                       soc.mem_map["emulator_ram"],
                       soc.emulator_rax.bus, 0x4000)
@@ -161,15 +158,15 @@ def GenSoc( Platform ):
       soc.add_csr("rgbledA")
 
     if Platform.hasFeature("rgbledB"):
-      soc.submodules.rgbledA = RGBLed(soc,"rgb_led",1)
+      soc.submodules.rgbledB = RGBLed(soc,"rgb_led",1)
       soc.add_csr("rgbledB")
 
     if Platform.hasFeature("rgbledC"):
-      soc.submodules.rgbledA = RGBLed(soc,"rgb_led",2)
+      soc.submodules.rgbledC = RGBLed(soc,"rgb_led",2)
       soc.add_csr("rgbledC")
 
     if Platform.hasFeature("rgbledD"):
-      soc.submodules.rgbledA = RGBLed(soc,"rgb_led",3)
+      soc.submodules.rgbledD = RGBLed(soc,"rgb_led",3)
       soc.add_csr("rgbledD")
 
     ###################################

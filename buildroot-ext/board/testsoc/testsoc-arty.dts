@@ -6,27 +6,31 @@
 
 	chosen {
 		bootargs = "mem=256M@0x40000000 rootwait console=hvc0 root=/dev/ram0 init=/sbin/init swiotlb=32";
-		linux,initrd-start = <0xC1000000>;
-		linux,initrd-end   = <0xC2000000>; // max 16MB ramdisk image
+		linux,initrd-start = <0x41000000>;
+		linux,initrd-end   = <0x42000000>; // max 16MB ramdisk image
 	};
 
 	cpus {
 		timebase-frequency = <100000000>;
 	};
 
-	memory@c0000000 {
+	memory@40000000 {
 		device_type = "memory";
-		reg = <0x0 0xc0000000 0x0 0x10000000>;
+		reg = <0x0 0x40000000 0x0 0x10000000>;
 	};
 
 	soc {
         mac0: mac@f0005000 {
             compatible = "litex,liteeth";
-            reg = < 0x0 0xf0005000 0x0 0x7c
-                    0x0 0xf0003800 0x0 0x0a
-                    0x0 0xb0000000 0x0 0x2000>;
+            reg = < 0x0 0xf0004800 0x0 0x7c     // ethmac CSR
+                    0x0 0xf0004000 0x0 0x0a     // ethphy
+                    0x0 0x80000000 0x0 0x2000>; // ethmac buffer
             tx-fifo-depth = <2>;
             rx-fifo-depth = <2>;
+        };
+        rgbled@f0005000 {
+           compatible = "litex,litergb";
+           reg = <0x0 0xf0005000 0x0 0x800>;
         };
         rgbled@f0005800 {
            compatible = "litex,litergb";
@@ -40,13 +44,9 @@
            compatible = "litex,litergb";
            reg = <0x0 0xf0006800 0x0 0x800>;
         };
-        rgbled@f0007000 {
-           compatible = "litex,litergb";
-           reg = <0x0 0xf0007000 0x0 0x800>;
-        };
-		pmoda@f0007800 {
+    		pmoda@f0007000 {
            compatible = "litex,litepmod";
-           reg = <0x0 0xf0007800 0x0 0x800>;
+           reg = <0x0 0xf0007000 0x0 0x800>;
        };
     };
 };

@@ -9,9 +9,9 @@ dest_dir = (prj_root/"tftp_root"/"arty").resolve()
 
 items = [
     ("emulator.bin", "0x20000000"),
-    ("rv32.dtb", "0xc0ff0000"),
-    ("Image", "0xc0000000"),
-    ("rootfs.cpio", "0xc1000000")
+    ("rv32.dtb", "0x40ff0000"),
+    ("Image", "0x40000000"),
+    ("rootfs.cpio", "0x41000000")
 ]
 
 with open(dest_dir/"boot.manifest","w") as f:
