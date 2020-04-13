@@ -121,7 +121,7 @@ void onSigInt(int x) { onExit(); }
 
 int main(int argc, const char** argv) {
   app_lifecycle_state.store(0);
-  printf("cputype<%s>\n", config_cpu_type_read());
+  //printf("cputype<%s>\n", config_cpu_type_read());
 
   auto mem = new uint8_t[1 << 20];
   printf("heap alloc addr<%p>\n", mem);

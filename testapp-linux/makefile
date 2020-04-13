@@ -1,6 +1,6 @@
 
 INCPATHA = -I ${LITEX_ROOT}/soc/software/include
-INCPATHB = -I ${SOC_BUILD_DIR}/software/include/generated
+INCPATHB = -I ${SOC_BUILD_DIR}/${FPGAPLAT}/software/include
 INCPATHC = -I ${BUILDROOT_DIR}/output/build/linux-headers-5.0.13/include
 INCPATHD = -I ${BUILDROOT_DIR}/output/build/linux-headers-5.0.13/arch/riscv/include
 

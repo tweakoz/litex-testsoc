@@ -20,7 +20,7 @@
 #include <set>
 
 extern "C" {
-    #include <csr.h>
+    #include <generated/csr.h>
 }
 
 typedef volatile uint8_t* regaddr_t;
