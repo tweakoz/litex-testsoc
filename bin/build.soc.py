@@ -19,6 +19,8 @@ p = socplat.get()
 
 builder = Builder( p.gen(),
                    output_dir=output_dir,
+                   compile_gateware=True,
+                   compile_software=True,
                    csr_csv=str(output_dir/"mysoc_csr.csv"))
 
 builder.build() # finalize here

@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-MICROORK_VERSION = d59e0a7
+MICROORK_VERSION = 2d5039fe433876f8b1d97ede5a3685a97cfbe0f6
 MICROORK_SITE = https://github.com/tweakoz/micro_ork.git
 MICROORK_SITE_METHOD = git
 MICROORK_LICENSE = MIT

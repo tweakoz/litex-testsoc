@@ -67,15 +67,12 @@ def extensions(soc):
 
 class platform:
   def __init__(self):
-    self.name = "nexysvideo"
+    self.name = "cmoda7"
     self.baseclass = litex.boards.targets.nexys_video.BaseSoC
     self.extend = extensions
-    self.djtgname = "NexysVideo"
-    self.enable_ethernet = True
-
-  def hasFeature(self,name):
-      return name in ["pmodA","pmodC",
-                      "ethernet"]
+    self.enable_rgbleds = False
+    self.djtgname = "CmodA7"
+    self.enable_ethernet = False
 
   def gen(self):
       return top.GenSoc( self )

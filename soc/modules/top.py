@@ -84,9 +84,9 @@ board_name="testsoc"
 def SocBase(BaseClass,addargs=None):
     class _impx(BaseClass):
         BaseClass.mem_map["rom"] = 0x00000000
-        BaseClass.mem_map["sram"] = 0x10000000
+        BaseClass.mem_map["sram"] = 0x18000000
         BaseClass.mem_map["emulator_ram"] = 0x20000000
-        BaseClass.mem_map["ethmac"] = 0x30000000
+        BaseClass.mem_map["ethmac"] = 0x80000000
         BaseClass.mem_map["main_ram"] = 0xc0000000
         # BaseClass.mem_map["vexriscv_debug"] = 0xe0000000
         BaseClass.mem_map["csr"] = 0xf0000000
@@ -94,7 +94,7 @@ def SocBase(BaseClass,addargs=None):
         BaseClass.interrupt_map["pulsor"] = 4 # dynamically assign?
 
         def __init__(self,**kwargs):
-            super(_impx,self).__init__( **kwargs )
+            super().__init__( **kwargs )
 
     return _impx
 
@@ -103,16 +103,18 @@ def SocBase(BaseClass,addargs=None):
 def GenSoc( Platform ):
 
     baseclass = Platform.baseclass
-
     soc_base = SocBase(baseclass)
+    use_ethernet = Platform.enable_ethernet
     #######################################################
     soc = soc_base(
         cpu_type="vexriscv",
         cpu_variant="linux+debug",
+        cpu_reset_address = 0x00000000,
         ident="TestSoc",
         ident_version="0.1",
         csr_address_width=16,
         uart_baudrate=115200,
+        with_ethernet=use_ethernet
     )
     ######################################################
     Platform.extend(soc)
@@ -143,6 +145,9 @@ def GenSoc( Platform ):
     ###################################
 
     soc.submodules.emulator_rax = wishbone.SRAM(0x4000)
+    soc.register_mem( "rom",
+                      soc.mem_map["rom"],
+                      soc.emulator_rax.bus, 0x8000)
     soc.register_mem( "emulator_ram",
                       soc.mem_map["emulator_ram"],
                       soc.emulator_rax.bus, 0x4000)

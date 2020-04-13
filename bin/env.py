@@ -19,6 +19,7 @@ buildroot_rev = "1db7890e0a"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--stagedir", help="staging dir (default: <PRJROOT>/.stage)",type=str)
+parser.add_argument("--wipe", help="wipe staging dir",action="store_true")
 args = parser.parse_args()
 
 ###############################
@@ -29,6 +30,10 @@ stage_dir = (project_root/".stage").resolve()
 
 if hasattr(args,"stagedir") and args.stagedir!=None:
     stage_dir = Path(args.stagedir).resolve()
+
+if hasattr(args,"wipe") and args.wipe:
+    os.system("rm -rf %s"%stage_dir)
+
 obt_dir = (project_root/"ork.build").resolve()
 soc_dir = (project_root/"soc").resolve()
 obt_bin_dir = (obt_dir/"bin").resolve()
@@ -116,7 +121,7 @@ wget( urls=["https://static.dev.sifive.com/dev-tools/%s.tar.gz"%openocd],
       md5val = openocd_hash )
 
 if not os.path.exists(buildroot_dir):
-    ork.git.Clone( "https://github.com/buildroot/buildroot",
+    ork.git.Clone( "http://github.com/buildroot/buildroot",
                    buildroot_dir,
                    rev=buildroot_rev,
                    recursive=True )
@@ -186,7 +191,7 @@ for item in my_config:
 
 if not os.path.exists(builddir/"litex_setup.py"):
     os.chdir(builddir)
-    os.system("wget https://raw.githubusercontent.com/tweakoz/litex/tweakoz/diagnose_csr/litex_setup.py")
+    os.system("wget https://raw.githubusercontent.com/enjoy-digital/litex/master/litex_setup.py")
     os.system("python3 ./litex_setup.py init install")
     os.system("python3 ./litex_setup.py update")
 

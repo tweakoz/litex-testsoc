@@ -66,10 +66,11 @@ def extensions(soc):
 class platform:
   def __init__(self):
     self.name = "arty"
-    self.baseclass = litex.boards.targets.arty.EthernetSoC
+    self.baseclass = litex.boards.targets.arty.BaseSoC
     self.extend = extensions
     self.enable_rgbleds = False
     self.djtgname = "Arty"
+    self.enable_ethernet = True
 
   def hasFeature(self,name):
       return name in ["rgbledA","rgbledB","rgbledC","rgbledD",
